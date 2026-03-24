@@ -201,7 +201,7 @@ INSIGHTS:
 
     try:
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-8b-instant",
             max_tokens=500,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -220,6 +220,7 @@ INSIGHTS:
         return {"summary": summary, "points": points}
 
     except Exception as e:
+        print(f"GROQ ERROR: {e}") 
         return {
             "summary": f"Scan complete. Risk level: {risk_result['risk_level']}",
             "points": [f"Found {len(findings)} sensitive items requiring attention"]
