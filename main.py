@@ -37,6 +37,14 @@ def load_project_env() -> None:
 # Load environment variables from .env file
 load_project_env()
 
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s"
+)
+logger = logging.getLogger(__name__)
+
 # Initialize FastAPI app
 app = FastAPI(
     title="AI Secure Data Intelligence Platform",
@@ -81,7 +89,19 @@ async def analyze(request: AnalyzeRequest):
 
     # Step 1: Parse the input based on type
     cleaned_content = parse_input(request.input_type, request.content)
+    # Validation
+    if not cleaned_content or len(cleaned_content.strip()) < 3:
+        raise HTTPException(
+            status_code=400,
+            detail="Input content is too short or empty"
+        )
 
+    valid_types = ["text", "log", "sql", "chat"]
+    if request.input_type not in valid_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid input_type. Must be one of: {valid_types}"
+        )
     # Step 2: Run log analyzer or basic detector
     anomalies = []
     if request.input_type == "log":
@@ -107,6 +127,8 @@ async def analyze(request: AnalyzeRequest):
 
     # Step 5: Get AI insights from Claude
     insights = get_ai_insights(findings, anomalies, risk_result)
+
+    logger.info(f"Analysis complete | type={request.input_type} | risk={risk_result['risk_level']} | score={risk_result['score']} | findings={len(findings)}")
 
     # Step 6: Build and return final response
     return {
@@ -143,7 +165,7 @@ async def analyze_file(file: UploadFile = File(...)):
 
     # Determine input type from file extension
     filename = file.filename.lower()
-     if filename.endswith(".pdf"):
+    if filename.endswith(".pdf"):
         try:
             import PyPDF2
             import io
@@ -202,7 +224,7 @@ def get_ai_insights(findings: list, anomalies: list, risk_result: dict) -> dict:
         for a in anomalies
     ]) if anomalies else "None"
 
-    prompt = f"""You are a security analyst. Analyze these findings from a log/data scan:
+    prompt = f"""You are a security analyst reviewing a log/data scan report.
 
 Findings:
 {findings_text}
@@ -216,6 +238,12 @@ Risk Level: {risk_result['risk_level']}
 Provide:
 1. A one sentence summary of the overall security situation
 2. A list of 3 to 5 specific, actionable security insights
+
+Focus especially on:
+- Whether API keys or tokens are exposed in logs
+- Whether there are multiple failed login attempts
+- Whether sensitive user data is logged in plain text
+- What immediate actions should be taken
 
 Format your response exactly like this:
 SUMMARY: <one sentence>

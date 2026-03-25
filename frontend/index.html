@@ -371,6 +371,58 @@
       font-size: 14px;
       display: none;
     }
+    /* Log viewer */
+.log-viewer {
+    background: #0d0f1a;
+    border: 1px solid #2d3148;
+    border-radius: 8px;
+    padding: 0;
+    overflow: hidden;
+    margin-top: 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.log-line {
+    display: flex;
+    align-items: flex-start;
+    padding: 4px 12px;
+    border-bottom: 1px solid #1a1d2e;
+    line-height: 1.6;
+}
+
+.log-line:last-child { border-bottom: none; }
+
+.log-line.highlight-critical { background: rgba(127, 29, 29, 0.3); }
+.log-line.highlight-high     { background: rgba(124, 45, 18, 0.3); }
+.log-line.highlight-medium   { background: rgba(120, 53, 15, 0.2); }
+.log-line.highlight-low      { background: rgba(6, 78, 59, 0.2); }
+
+.log-line-num {
+    min-width: 36px;
+    color: #4a5568;
+    user-select: none;
+    padding-right: 12px;
+    text-align: right;
+    font-size: 11px;
+    padding-top: 1px;
+}
+
+.log-line-content { flex: 1; color: #94a3b8; word-break: break-all; }
+
+.log-risk-marker {
+    margin-left: 8px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.marker-critical { background: #7f1d1d; color: #fca5a5; }
+.marker-high     { background: #7c2d12; color: #fb923c; }
+.marker-medium   { background: #78350f; color: #fcd34d; }
+.marker-low      { background: #064e3b; color: #6ee7b7; }
   </style>
 </head>
 <body>
@@ -494,6 +546,10 @@
           </thead>
           <tbody id="findings-tbody"></tbody>
         </table>
+      </div>
+      <div class="card" id="log-viewer-card" style="display:none;">
+          <h2>📋 Log Visualization</h2>
+          <div class="log-viewer" id="log-viewer"></div>
       </div>
 
     </div>
@@ -694,7 +750,58 @@
       // Show results
       document.getElementById('results').style.display = 'block';
       document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+      // Log viewer
+const rawContent = document.getElementById('content-input').value;
+renderLogViewer(rawContent, data.findings);
     }
+    function renderLogViewer(content, findings) {
+    const card = document.getElementById('log-viewer-card');
+    const viewer = document.getElementById('log-viewer');
+
+    if (!content || currentType === 'file') {
+        card.style.display = 'none';
+        return;
+    }
+
+    const lineRiskMap = {};
+    if (findings) {
+        findings.forEach(f => {
+            const line = f.line;
+            const existing = lineRiskMap[line];
+            const riskOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+            if (!existing || riskOrder[f.risk] > riskOrder[existing]) {
+                lineRiskMap[line] = f.risk;
+            }
+        });
+    }
+
+    const lines = content.split('\n');
+    viewer.innerHTML = '';
+
+    lines.forEach((line, index) => {
+        const lineNum = index + 1;
+        const risk = lineRiskMap[lineNum];
+        const div = document.createElement('div');
+        div.className = 'log-line' + (risk ? ` highlight-${risk}` : '');
+
+        div.innerHTML = `
+            <span class="log-line-num">${lineNum}</span>
+            <span class="log-line-content">${escapeHtml(line || ' ')}</span>
+            ${risk ? `<span class="log-risk-marker marker-${risk}">${risk}</span>` : ''}
+        `;
+        viewer.appendChild(div);
+    });
+
+    card.style.display = 'block';
+}
+
+function escapeHtml(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
   </script>
 </body>
 </html>

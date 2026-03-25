@@ -90,7 +90,26 @@ def analyze_log(content: str) -> dict:
             "risk": "critical"
         })
 
-    # Step 9: Return everything
+    # Step 10: Suspicious IP activity
+    from collections import Counter
+    import re as _re
+
+    ip_pattern = r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b"
+    all_ips = []
+    for line in lines:
+        found = _re.findall(ip_pattern, line)
+        all_ips.extend(found)
+
+    ip_counts = Counter(all_ips)
+    suspicious_ips = {ip: count for ip, count in ip_counts.items() if count > 5}
+
+    if suspicious_ips:
+        anomalies.append({
+            "type": "suspicious_ip_activity",
+            "description": f"Repeated requests from same IP detected: {list(suspicious_ips.keys())}",
+            "risk": "high"
+        })
+      # Step 9: Return everything
     return {
         "findings": findings,
         "anomalies": anomalies,
