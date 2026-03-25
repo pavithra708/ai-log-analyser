@@ -1,5 +1,6 @@
 from analyzer.detector import detect
 
+
 def analyze_log(content: str) -> dict:
     """
     Accepts raw log content as a string.
@@ -22,7 +23,6 @@ def analyze_log(content: str) -> dict:
             risk_counts[risk] += 1
 
     # Step 3: Check for brute force pattern
-    # If more than 5 lines contain "failed" or "unauthorized" its suspicious
     lines = content.splitlines()
     failed_attempts = sum(
         1 for line in lines
@@ -37,19 +37,22 @@ def analyze_log(content: str) -> dict:
 
     # Step 5: Build anomalies list
     anomalies = []
+
     if brute_force_detected:
         anomalies.append({
             "type": "brute_force",
             "description": f"Multiple failed login attempts detected ({failed_attempts} occurrences)",
             "risk": "high"
         })
+
     if debug_detected:
         anomalies.append({
             "type": "debug_leak",
             "description": "Debug mode appears to be enabled — internal info may be exposed",
             "risk": "medium"
         })
-        # SQL injection check
+
+    # Step 6: SQL injection check
     sql_keywords = ["select ", "drop ", "insert ", "union ", "' or '", "1=1"]
     sql_detected = any(
         any(kw in line.lower() for kw in sql_keywords)
@@ -62,7 +65,32 @@ def analyze_log(content: str) -> dict:
             "risk": "critical"
         })
 
-    # Step 6: Return everything
+    # Step 7: Suspicious scanning — repeated 404s
+    not_found_count = sum(
+        1 for line in lines
+        if "404" in line or "not found" in line.lower()
+    )
+    if not_found_count > 5:
+        anomalies.append({
+            "type": "suspicious_scanning",
+            "description": f"Repeated 404 errors detected ({not_found_count} times) — possible endpoint scanning",
+            "risk": "medium"
+        })
+
+    # Step 8: Privilege escalation attempt
+    priv_keywords = ["root", "sudo", "admin", "privilege", "escalat"]
+    priv_detected = any(
+        any(kw in line.lower() for kw in priv_keywords)
+        for line in lines
+    )
+    if priv_detected:
+        anomalies.append({
+            "type": "privilege_escalation_attempt",
+            "description": "Possible privilege escalation attempt detected in logs",
+            "risk": "critical"
+        })
+
+    # Step 9: Return everything
     return {
         "findings": findings,
         "anomalies": anomalies,

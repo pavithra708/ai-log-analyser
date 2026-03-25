@@ -143,7 +143,32 @@ async def analyze_file(file: UploadFile = File(...)):
 
     # Determine input type from file extension
     filename = file.filename.lower()
-    if filename.endswith(".log"):
+     if filename.endswith(".pdf"):
+        try:
+            import PyPDF2
+            import io
+            reader = PyPDF2.PdfReader(io.BytesIO(content))
+            text = "\n".join(
+                page.extract_text() or "" 
+                for page in reader.pages
+            )
+            input_type = "text"
+        except Exception:
+            raise HTTPException(status_code=400, detail="Could not read PDF file")
+
+    # DOC/DOCX support
+    elif filename.endswith(".docx"):
+        try:
+            import docx
+            import io
+            doc = docx.Document(io.BytesIO(content))
+            text = "\n".join(para.text for para in doc.paragraphs)
+            input_type = "text"
+        except Exception:
+            raise HTTPException(status_code=400, detail="Could not read DOCX file")
+
+    
+    elif filename.endswith(".log"):
         input_type = "log"
     elif filename.endswith(".sql"):
         input_type = "sql"
@@ -225,3 +250,4 @@ INSIGHTS:
             "summary": f"Scan complete. Risk level: {risk_result['risk_level']}",
             "points": [f"Found {len(findings)} sensitive items requiring attention"]
         }
+    

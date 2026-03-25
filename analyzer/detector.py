@@ -4,6 +4,12 @@ import re
 #Each pattern here has type,pattern,risk and description
 PATTERNS = [
     {
+    "type": "token",
+    "pattern": r"token\s*[:=]\s*[a-zA-Z0-9_\-]{8,}",
+    "risk": "high",
+    "description": "Auth token found in logs"
+    },
+    {
         "type": "email",
         "pattern": r"[\w.+-]+@[\w-]+\.[a-z]{2,}",
         "risk": "low",
