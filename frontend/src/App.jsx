@@ -196,7 +196,7 @@ export default function App() {
         {error ? <div className="errorBox">{error}</div> : null}
 
         {result ? (
-          result.action === "blocked" ? (
+          <>
             <section className="card">
               <h2>Scan Summary</h2>
               <div className="summaryRow">
@@ -205,118 +205,101 @@ export default function App() {
                   <div className="muted">Risk Score</div>
                 </div>
                 <div className={`badge risk ${result.risk_level}`}>{result.risk_level}</div>
-                <div className="badge action blocked">BLOCKED</div>
-              </div>
-              <div className="summaryText" style={{ color: "#fca5a5" }}>
-                🚫 {result.reason || "Request blocked due to high risk level"}
-              </div>
-            </section>
-          ) : (
-            <>
-              <section className="card">
-                <h2>Scan Summary</h2>
-                <div className="summaryRow">
-                  <div>
-                    <div className="score">{result.risk_score}</div>
-                    <div className="muted">Risk Score</div>
-                  </div>
-                  <div className={`badge risk ${result.risk_level}`}>{result.risk_level}</div>
-                  <div className={`badge action ${result.action}`}>{result.action}</div>
-                  <div className="muted">
-                    {result.total_lines} lines scanned - {result.findings?.length || 0} findings
-                  </div>
+                <div className={`badge action ${result.action}`}>{result.action}</div>
+                <div className="muted">
+                  {result.total_lines} lines scanned - {result.findings?.length || 0} findings
                 </div>
+              </div>
 
-                <div className="summaryText">{result.summary || "No summary available"}</div>
+              <div className="summaryText">{result.summary || "No summary available"}</div>
 
-                {result.breakdown ? (
-                  <div className="pillRow">
-                    {Object.entries(result.breakdown).map(([type, count]) => (
-                      <span key={type} className="pill">
-                        {type} <strong>{count}</strong>
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
+              {result.breakdown ? (
+                <div className="pillRow">
+                  {Object.entries(result.breakdown).map(([type, count]) => (
+                    <span key={type} className="pill">
+                      {type} <strong>{count}</strong>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </section>
+
+            {result.insights?.length ? (
+              <section className="card">
+                <h2>AI Security Insights</h2>
+                <ul className="list">
+                  {result.insights.map((insight, idx) => (
+                    <li key={`${insight}-${idx}`}>{insight}</li>
+                  ))}
+                </ul>
               </section>
+            ) : null}
 
-              {result.insights?.length ? (
-                <section className="card">
-                  <h2>AI Security Insights</h2>
-                  <ul className="list">
-                    {result.insights.map((insight, idx) => (
-                      <li key={`${insight}-${idx}`}>{insight}</li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
+            {result.anomalies?.length ? (
+              <section className="card">
+                <h2>Anomalies Detected</h2>
+                <div className="anomalyList">
+                  {result.anomalies.map((anomaly, idx) => (
+                    <article key={`${anomaly.type}-${idx}`} className="anomalyItem">
+                      <h3>{anomaly.type.replaceAll("_", " ")}</h3>
+                      <p>{anomaly.description}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
-              {result.anomalies?.length ? (
-                <section className="card">
-                  <h2>Anomalies Detected</h2>
-                  <div className="anomalyList">
-                    {result.anomalies.map((anomaly, idx) => (
-                      <article key={`${anomaly.type}-${idx}`} className="anomalyItem">
-                        <h3>{anomaly.type.replaceAll("_", " ")}</h3>
-                        <p>{anomaly.description}</p>
-                      </article>
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-
-              {result.findings?.length ? (
-                <section className="card">
-                  <h2>Findings</h2>
-                  <div className="tableWrap">
-                    <table className="table">
-                      <thead>
-                        <tr>
-                          <th>Line</th>
-                          <th>Type</th>
-                          <th>Value</th>
-                          <th>Risk</th>
-                          <th>Description</th>
+            {result.findings?.length ? (
+              <section className="card">
+                <h2>Findings</h2>
+                <div className="tableWrap">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Line</th>
+                        <th>Type</th>
+                        <th>Value</th>
+                        <th>Risk</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {result.findings.map((finding, idx) => (
+                        <tr key={`${finding.type}-${finding.line}-${idx}`}>
+                          <td>L{finding.line}</td>
+                          <td>{finding.type}</td>
+                          <td className="mono">{finding.value}</td>
+                          <td>
+                            <span className={`badge risk ${finding.risk}`}>{finding.risk}</span>
+                          </td>
+                          <td>{finding.description}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {result.findings.map((finding, idx) => (
-                          <tr key={`${finding.type}-${finding.line}-${idx}`}>
-                            <td>L{finding.line}</td>
-                            <td>{finding.type}</td>
-                            <td className="mono">{finding.value}</td>
-                            <td>
-                              <span className={`badge risk ${finding.risk}`}>{finding.risk}</span>
-                            </td>
-                            <td>{finding.description}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-              ) : null}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ) : null}
 
-              {currentType !== "file" && inputLines.length ? (
-                <section className="card">
-                  <h2>Log Visualization</h2>
-                  <div className="logViewer">
-                    {inputLines.map((line, idx) => {
-                      const lineNo = idx + 1;
-                      const risk = lineRiskMap[lineNo];
-                      return (
-                        <div className={`logLine ${risk ? `hl-${risk}` : ""}`} key={lineNo}>
-                          <span className="lineNo">{lineNo}</span>
-                          <span className="lineContent">{line || " "}</span>
-                          {risk ? <span className={`badge risk ${risk}`}>{risk}</span> : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              ) : null}
-            </>
-          )
+            {currentType !== "file" && inputLines.length ? (
+              <section className="card">
+                <h2>Log Visualization</h2>
+                <div className="logViewer">
+                  {inputLines.map((line, idx) => {
+                    const lineNo = idx + 1;
+                    const risk = lineRiskMap[lineNo];
+                    return (
+                      <div className={`logLine ${risk ? `hl-${risk}` : ""}`} key={lineNo}>
+                        <span className="lineNo">{lineNo}</span>
+                        <span className="lineContent">{line || " "}</span>
+                        {risk ? <span className={`badge risk ${risk}`}>{risk}</span> : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
+          </>
         ) : null}
       </div>
     </div>
