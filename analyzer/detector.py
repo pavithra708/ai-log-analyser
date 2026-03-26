@@ -23,7 +23,7 @@ PATTERNS = [
     },
     {
         "type": "api_key",
-        "pattern": r"(sk|api|key|token)[-_]?[a-zA-Z0-9]{16,}",
+        "pattern": r"(sk|api|key|token)[-_]?[a-zA-Z0-9\-]{8,}",
         "risk": "high",
         "description": "API key or token found"
     },
