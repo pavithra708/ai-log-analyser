@@ -1,34 +1,117 @@
-﻿# AI Secure Data Intelligence Platform
+# AI Secure Data Intelligence Platform
 
-Hackathon project for secure content and log analysis:
-- AI Gateway
-- Data Scanner
-- Log Analyzer
-- Risk Engine
+A modular AI-powered system for detecting sensitive data, analyzing logs, and identifying security risks across multiple input sources.
 
-The backend exposes FastAPI endpoints that detect sensitive data, classify risk, apply policy, and generate evidence-based AI insights.
+---
 
-## Features
+## 🌐 Live Demo
 
-- Multi-input analysis: `text`, `log`, `sql`, `chat`
-- File upload support: `.log`, `.txt`, `.sql`, `.pdf`, `.docx`
-- Detection engine for:
-  - credentials and secrets (`password`, `secret`, `token`, `api_key`, `jwt`, `aws_key`)
-  - PII (`email`, `phone`, `credit_card`)
-  - security leaks (`stack_trace`, `database_url`, IPs)
-- Log anomaly detection:
-  - brute-force behavior
-  - suspicious IP activity
-  - SQL injection patterns
-  - debug leak indicators
-- Risk scoring + risk level classification
-- Policy action layer (`masked`, `blocked`, `passed`)
-- Evidence-based AI insights for summary and remediation guidance
-- Frontend UI with drag-and-drop upload, risk badges, findings table, and highlighted log lines
+🔗 https://ai-secure-platform-l42o.onrender.com/
 
-## Project Structure
+The application is publicly deployed and allows real-time analysis of logs, SQL queries, files, and text inputs.
 
-```text
+> ⚠️ Note: The app may take a few seconds to load due to cold start on free hosting.
+
+---
+
+## 🚨 Problem Statement
+
+Modern applications generate large volumes of logs that often contain sensitive information such as passwords, API keys, and system errors. If not monitored, these can lead to serious security vulnerabilities and data leaks.
+
+---
+
+## 💡 Solution
+
+This project provides a unified platform to analyze logs and multiple data sources, detect sensitive information, classify risks, and generate actionable AI-driven security insights.
+
+---
+
+## 🎯 Key Features
+
+* Multi-input support: `text`, `log`, `sql`, `chat`
+* File uploads: `.log`, `.txt`, `.sql`, `.pdf`, `.docx`
+* Sensitive data detection:
+
+  * Credentials: password, token, api_key, jwt, aws keys
+  * PII: email, phone, credit card
+  * Security leaks: stack traces, DB URLs, IPs
+* Log anomaly detection:
+
+  * Brute-force attempts
+  * Suspicious IP activity
+  * SQL injection patterns
+  * Debug leaks
+* Risk scoring and classification
+* Policy engine (mask / block / allow)
+* AI-generated insights and summaries
+* Interactive UI with:
+
+  * Risk indicators
+  * Findings table
+  * Highlighted log visualization
+
+---
+
+## 🏗️ System Architecture
+
+```
+Input (Text / Log / SQL / File / Chat)
+        ↓
+Parser & Extraction Layer
+        ↓
+Detection Engine (Regex + AI + Log Analyzer)
+        ↓
+Risk Engine (Scoring + Classification)
+        ↓
+Policy Engine (Mask / Block / Pass)
+        ↓
+AI Insights Generator
+        ↓
+Frontend Visualization
+```
+
+---
+
+## 📤 Sample Output
+
+```json
+{
+  "summary": "Sensitive credentials and errors detected in logs",
+  "risk_score": 14,
+  "risk_level": "high",
+  "action": "blocked",
+  "findings": [
+    {"type": "email", "risk": "low"},
+    {"type": "password", "risk": "critical"},
+    {"type": "stack_trace", "risk": "medium"}
+  ],
+  "insights": [
+    "Sensitive credentials exposed",
+    "Stack trace reveals internal system details"
+  ]
+}
+```
+
+---
+
+## 🎯 Key Focus
+
+This project focuses primarily on log analysis, a critical component for identifying security risks in real-world systems, while also supporting multi-source data ingestion.
+
+---
+
+## 🚀 Highlights
+
+* Modular and scalable architecture
+* Real-time risk scoring
+* AI-powered insights
+* Advanced log visualization with severity highlighting
+
+---
+
+## 📁 Project Structure
+
+```
 ai-log-secure/
   analyzer/
     detector.py
@@ -38,38 +121,45 @@ ai-log-secure/
     risk_engine.py
   frontend-react/
     src/
-    dist/  (generated on build)
+    dist/
   main.py
   requirements.txt
 ```
 
-## Requirements
+---
 
-- Python `3.10+` recommended
-- A Groq API key (`GROQ_API_KEY`)
+## ⚙️ Setup Instructions
 
-## Local Setup
-
-### 1. Clone and enter project
+### 1. Clone repository
 
 ```bash
 git clone <your-repo-url>
 cd ai-log-secure
 ```
 
-### 2. Create and activate virtual environment
+---
 
-Windows (PowerShell):
-```powershell
+### 2. Create virtual environment
+
+```bash
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
 ```
 
-macOS/Linux:
+Activate:
+
+**Windows**
+
 ```bash
-python3 -m venv .venv
+.\.venv\Scripts\activate
+```
+
+**Mac/Linux**
+
+```bash
 source .venv/bin/activate
 ```
+
+---
 
 ### 3. Install dependencies
 
@@ -77,51 +167,53 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
+---
 
-Create a `.env` file in project root:
+### 4. Configure environment
+
+Create `.env`:
 
 ```env
-GROQ_API_KEY=your_groq_api_key_here
+GROQ_API_KEY=your_api_key_here
 ```
 
-### 5. Install React frontend dependencies
+---
+
+### 5. Install frontend
 
 ```bash
 cd frontend-react
 npm install
-cd ..
-```
-
-### 6. Build React frontend
-
-```bash
-cd frontend-react
 npm run build
 cd ..
 ```
 
-### 7. Run backend (serves API + React build)
+---
+
+### 6. Run backend
 
 ```bash
-uvicorn main:app --reload --host 127.0.0.1 --port 8000
+python -m uvicorn main:app --reload
 ```
 
-App URLs:
-- UI: `http://127.0.0.1:8000/`
-- Health: `http://127.0.0.1:8000/health`
-- API docs: `http://127.0.0.1:8000/docs`
+---
 
-## API Endpoints
+## 🌍 Access URLs
 
-### `POST /analyze`
+* UI: http://127.0.0.1:8000/
+* API Docs: http://127.0.0.1:8000/docs
+* Health: http://127.0.0.1:8000/health
 
-Request body:
+---
+
+## 🔌 API
+
+### POST `/analyze`
 
 ```json
 {
-  "input_type": "text | log | sql | chat",
-  "content": "input content here",
+  "input_type": "log",
+  "content": "your input here",
   "options": {
     "mask": true,
     "block_high_risk": true,
@@ -130,62 +222,31 @@ Request body:
 }
 ```
 
-### `POST /analyze/file`
+---
 
-`multipart/form-data` with key `file`.
-
-## Deployment
-
-Deploy as a single service (backend + React frontend together).
-
-### Render (single service)
-
-1. Push repo to GitHub.
-2. In Render, create a new **Web Service** from the repo.
-3. Configure:
-   - Build Command: `pip install -r requirements.txt && cd frontend-react && npm install && npm run build`
-   - Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-4. Add environment variable:
-   - `GROQ_API_KEY=<your-key>`
-5. Deploy.
-
-After deploy:
-- `https://your-service.onrender.com/` serves the React UI.
-- API stays on the same domain (`/analyze`, `/analyze/file`).
-
-### Railway (single service)
-
-1. Create project from this GitHub repo.
-2. Set environment variable:
-   - `GROQ_API_KEY=<your-key>`
-3. Build command:
-   - `pip install -r requirements.txt && cd frontend-react && npm install && npm run build`
-4. Start command:
-   - `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. Deploy.
-
-## Security Notes
-
-- Never commit `.env` or API keys.
-- CORS is currently open (`allow_origins=["*"]`) for development/hackathon speed.
-- For production, restrict CORS to your frontend domain.
-
-## Demo Input Example
+## 📌 Demo Input
 
 ```log
-2026-03-10 10:00:01 INFO User login
+2026-03-10 INFO User login
 email=admin@company.com
 password=admin123
 api_key=sk-prod-xyz
-ERROR stack trace: NullPointerException at service.java:45
+ERROR stack trace: NullPointerException
 ```
 
-## Troubleshooting
+---
 
-- If uploads fail, confirm `python-multipart` is installed.
-- If PDF/DOCX parsing fails, confirm `pypdf2` and `python-docx` are installed.
-- If AI insights fallback appears, verify `GROQ_API_KEY` and internet access from deployment runtime.
+## 🚀 Deployment
 
-## License
+Deployed on Render for real-time access and testing.
 
-For hackathon/demo usage.
+---
+
+## 🧠 Tech Stack
+
+* Backend: FastAPI (Python)
+* Frontend: React
+* AI: Groq API
+* Deployment: Render
+
+
